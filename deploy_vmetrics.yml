@@ -1,0 +1,7 @@
+---
+- name: Deploy VictoriaMetrics and vmagent
+  hosts: all
+  become: true
+
+  roles:
+    - v_metrics

@@ -1,0 +1,49 @@
+---
+- name: Create Grafana API key
+  uri:
+    url: "https://{{ grafana_domain }}/api/auth/keys"
+    method: POST
+    user: "{{ grafana_admin }}"
+    password: "{{ grafana_admin_pass }}"
+    force_basic_auth: yes
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      name: "{{ grafana_api_key_name }}"
+      role: "{{ grafana_api_key_role }}"
+      secondsToLive: "{{ grafana_api_key_ttl }}"
+    status_code: 200, 201
+  register: grafana_api_response
+
+#    - name: Debug Grafana API key result
+#      debug:
+#        msg: "Grafana API key is {{ grafana_api_response.json.key }}"
+
+- name: Add Prometheus datasource in Grafana
+  community.grafana.grafana_datasource:
+    grafana_url: "{{ grafana_url }}"
+    grafana_api_key: "{{ grafana_api_key }}"
+    state: present
+    name: "Prometheus"
+    type: "prometheus"
+    access: "proxy"
+    url: "http://prometheus:9090"
+    is_default: yes
+  register: ds_result
+
+- name: Debug datasource result
+  debug:
+    var: ds_result
+
+- name: Import Grafana dashboard
+  community.grafana.grafana_dashboard:
+    grafana_url: "{{ grafana_url }}"
+    grafana_api_key: "{{ grafana_api_key }}"
+    state: present
+    dashboard: "{{ lookup('file', 'files/dashboards/my_dashboard.json') }}"
+  register: dash_result
+
+- name: Debug dashboard result
+  debug:
+    var: dash_result

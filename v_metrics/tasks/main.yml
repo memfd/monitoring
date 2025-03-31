@@ -1,0 +1,7 @@
+---
+# Install and configure victoriametrics, vmagent and grafana
+- include_tasks: install_victoria.yml
+- include_tasks: install_vmagent.yml 
+- include_tasks: configure_firewalld.yml
+- include_tasks: install_grafana.yml
+

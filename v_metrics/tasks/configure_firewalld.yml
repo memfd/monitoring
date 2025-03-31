@@ -1,0 +1,17 @@
+---
+- name: Gather service facts
+  service_facts:
+
+- name: Open ports 8428 and 8429 in firewalld if running
+  firewalld:
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  loop:
+    - 8428
+    - 8429
+    - 3000
+    - 443
+    - 80
+  when: "'firewalld.service' in ansible_facts.services and ansible_facts.services['firewalld.service'].state == 'running'"

@@ -1,0 +1,19 @@
+---
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Restart victoriametrics
+  systemd:
+    name: victoriametrics
+    state: restarted
+
+- name: Restart vmagent
+  systemd:
+    name: vmagent
+    state: restarted
+
+- name: Restart Grafana
+  systemd:
+    name: grafana-server
+    state: restarted

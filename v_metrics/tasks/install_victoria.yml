@@ -1,0 +1,57 @@
+---
+
+#Install and configure VictoriaMetrics
+
+- name: Create group for VictoriaMetrics
+  group:
+    name: "{{ victoria_group }}"
+    system: yes
+
+- name: Create user for VictoriaMetrics
+  user:
+    name: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+    home: "{{ victoria_home }}"
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Create directories for VictoriaMetrics
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ victoria_user }}"
+    group: "{{ victoria_group }}"
+    mode: '0755'
+  loop:
+    - "{{ victoria_data_dir }}"
+
+- name: Copy VictoriaMetrics archive to target
+  copy:
+    src: "victoria-metrics-linux-amd64-{{ vm_version }}.tar.gz"
+    dest: "/tmp/victoria-metrics-linux-amd64-{{ vm_version }}.tar.gz"
+    mode: '0644'
+
+- name: Unarchive VictoriaMetrics
+  unarchive:
+    src: "/tmp/victoria-metrics-linux-amd64-{{ vm_version }}.tar.gz"
+    dest: "{{ victoria_install_dir }}"
+    remote_src: yes
+    # Если внутри архива есть бинарник "victoria-metrics-prod" или аналог
+    creates: "{{ victoria_install_dir }}/victoria-metrics-prod"
+
+- name: Deploy victoria systemd unit
+  template:
+    src: "victoriametrics.service.j2"
+    dest: "/etc/systemd/system/victoriametrics.service"
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart victoriametrics
+
+- name: Enable and start victoriametrics service
+  systemd:
+    name: victoriametrics
+    enabled: yes
+    state: started
+

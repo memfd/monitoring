@@ -1,0 +1,5 @@
+httpListenAddr=0.0.0.0:{{ vmagent_listen_port }}
+promscrape_config=vmagent.yml
+remoteWrite_tmpDataPath={{ vmagent_work_dir }}
+remoteWrite_url={{ vmagent_remote_write_url }}
+promscrape_suppressDuplicateScrapeTargetErrors=true

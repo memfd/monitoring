@@ -1,0 +1,39 @@
+---
+# Общее
+vm_version: "v1.112.0"
+
+# VictoriaMetrics
+victoria_user: "victoriametrics"
+victoria_group: "victoriametrics"
+victoria_home: "/var/lib/victoriametrics"
+victoria_install_dir: "/usr/local/bin/"
+victoria_data_dir: "/data/victoria-metrics-data/"
+victoria_work_dir: "/etc/victoriametrics"
+victoria_listen_port: 8428
+
+# vmagent
+vmagent_user: "vmagent"
+vmagent_group: "victoriametrics"
+vmagent_install_dir: "/usr/local/bin/"
+vmagent_data_dir: "/var/lib/vmagent-data"
+vmagent_env_file: "/etc/sysconfig/vmagent"
+vmagent_work_dir: "/var/log/vmagent"
+vmagent_listen_port: 8429
+
+vmagent_remote_write_url: "http://example.com:8428/api/v1/write"
+
+# grafana
+grafana_domain: "example.com"
+grafana_admin_pass: "admin_pass"
+grafana_api_key_name: "ansible-api-key"
+grafana_api_key_role: "Admin"
+grafana_api_key_ttl: 0                  
+# Пути для SSL сертификатов
+grafana_ssl_cert_src: "example.com.crt"
+grafana_ssl_key_src: "example.com.key"
+grafana_ssl_cert_dest: "/etc/grafana/ssl/example.com.crt"
+grafana_ssl_key_dest: "/etc/grafana/ssl/example.com.key"
+
+# Порты для доступа (HTTP/HTTPS)
+grafana_http_port: 3000
+grafana_https_port: 3000

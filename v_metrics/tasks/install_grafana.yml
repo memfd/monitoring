@@ -1,0 +1,45 @@
+---
+- name: Install Grafana package
+  yum:
+    name: grafana
+    state: present
+
+- name: Create directory for Grafana SSL certificates
+  file:
+    path: /etc/grafana/ssl
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0755'
+
+- name: Copy SSL certificate
+  ansible.builtin.copy:
+    src: "{{ grafana_ssl_cert_src }}"
+    dest: "{{ grafana_ssl_cert_dest }}"
+    owner: grafana
+    group: grafana
+    mode: '0644'
+
+- name: Copy SSL key
+  copy:
+    src: "{{ grafana_ssl_key_src }}"
+    dest: "{{ grafana_ssl_key_dest }}"
+    owner: grafana
+    group: grafana
+    mode: '0600'
+
+- name: Configure Grafana for HTTPS
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: grafana
+    group: grafana
+    mode: '0644'
+  notify:
+    - Restart Grafana
+
+- name: Enable and start Grafana service
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes

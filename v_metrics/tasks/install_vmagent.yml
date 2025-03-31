@@ -1,0 +1,97 @@
+---
+# Install and configure Vmagent
+- name: Create group for vmagent
+  group:
+    name: "{{ vmagent_group }}"
+    system: yes
+
+- name: Create user for vmagent
+  user:
+    name: "{{ vmagent_user }}"
+    group: "{{ vmagent_group }}"
+    shell: /usr/sbin/nologin
+    system: yes
+    create_home: no
+
+- name: Create directories for vmagent
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ vmagent_user }}"
+    group: "{{ vmagent_group }}"
+    mode: '0755'
+  loop:
+    - "{{ vmagent_install_dir }}"
+    - "{{ vmagent_data_dir }}"
+    - "{{ vmagent_work_dir }}"
+
+- name: Create work directorie with mode 2750 for victoria
+  file:
+    path: "{{ victoria_work_dir }}"
+    state: directory
+    owner: root
+    group: "{{ victoria_group }}"
+    mode: '2750'
+
+- name: Set default ACL for /etc/victoriametrics
+  acl:
+    path: "{{ victoria_work_dir }}"
+    default: yes
+    state: present
+    entry: "{{ item }}"
+  loop:
+    - "u::rwX"
+    - "g::r-X"
+    - "o::---"
+- name: Set current ACL for /etc/victoriametrics
+  acl:
+    path: "{{ victoria_work_dir }}"
+    state: present
+    entry: "{{ item }}"
+  loop:
+    - "u::rwX"
+    - "g::r-X"
+    - "o::---"
+
+- name: Copy vmagent archive to target
+  copy:
+    src: "vmutils-linux-amd64-{{ vm_version }}.tar.gz"
+    dest: "/tmp/vmutils-linux-amd64-{{ vm_version }}.tar.gz"
+    mode: '0644'
+
+- name: Unarchive vmagent
+  unarchive:
+    src: "/tmp/vmutils-linux-amd64-{{ vm_version }}.tar.gz"
+    dest: "{{ vmagent_install_dir }}"
+    remote_src: yes
+    # Если в архиве бинарник называется "vmagent-prod" или аналог
+    creates: "{{ vmagent_install_dir }}/vmagent-prod"
+  notify: Restart vmagent
+
+- name: Copy template ENV sysconfig file for vmagent service
+  template:
+    src: "vmagent.j2"
+    dest: "/etc/sysconfig/vmagent"
+    mode: '0644'
+
+- name: Copy primary config file for vmagent
+  copy:
+    src: "vmagent.yml"
+    dest: "/etc/victoriametrics/vmagent.yml"
+    mode: '0644'
+
+- name: Deploy vmagent systemd unit
+  template:
+    src: "vmagent.service.j2"
+    dest: "/etc/systemd/system/vmagent.service"
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart vmagent
+
+- name: Enable and start vmagent service
+  systemd:
+    name: vmagent
+    enabled: yes
+    state: started
+
